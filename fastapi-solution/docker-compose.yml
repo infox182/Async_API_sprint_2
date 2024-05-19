@@ -1,0 +1,60 @@
+version: '3'
+services:
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - ./volumes/postgresql/data:/var/lib/postgresql/data
+      - ./postgres_to_es/movies_database.sql:/docker-entrypoint-initdb.d/movies_database.sql
+
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    deploy:
+      resources:
+        limits:
+          memory: 4GB
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+
+  etl:
+    build: ./postgres_to_es
+    depends_on:
+      - postgres
+      - elasticsearch
+    env_file:
+      - .env
+
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./volumes/redis:/root/redis
+
+  fastapi:
+    build: .
+    depends_on:
+      - redis
+      - etl
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:1.25.3
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - postgres
+      - elasticsearch
+      - redis
+      - fastapi
+    ports:
+      - "80:80"
