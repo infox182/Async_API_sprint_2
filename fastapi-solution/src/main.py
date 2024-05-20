@@ -6,7 +6,6 @@ from redis.asyncio import Redis
 
 from api.v1 import films, genres, persons
 from core import config
-from core.logger import LOGGING
 from db import elastic, redis
 
 app = FastAPI(

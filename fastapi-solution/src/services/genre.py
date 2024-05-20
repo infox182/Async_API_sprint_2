@@ -51,7 +51,8 @@ class GenreService:
         return [Genre(**i["_source"]) for i in response["hits"]["hits"]]
 
     async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
-        data = await self.redis.get(genre_id)
+        key = self.index_name + ':' + genre_id
+        data = await self.redis.get(key)
         if not data:
             return None
 
@@ -59,7 +60,8 @@ class GenreService:
         return film
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(genre.uuid, genre.json(), CACHE_EXPIRE_IN_SECONDS)
+        key = self.index_name + ':' + genre.uuid
+        await self.redis.set(key, genre.json(), CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

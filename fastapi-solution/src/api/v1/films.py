@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Annotated
 
 from services.film import FilmService, get_film_service
 from models.film import Film, FilmBase
@@ -9,12 +9,17 @@ from models.film import Film, FilmBase
 router = APIRouter()
 
 
-@router.get("/", response_model=list[FilmBase], response_model_by_alias=False)
+@router.get("/",
+            response_model=list[FilmBase],
+            response_model_by_alias=False,
+            description='Получить список фильмов.')
 async def all_films(
     genre: str | None = None,
     sort: str = "-imdb_rating",
-    page_size: int = 50,
-    page_number: int = 1,
+    page_size: Annotated[
+        int, Query(description='Pagination page size', ge=1)] = 50,
+    page_number: Annotated[
+        int, Query(description='Pagination page number', ge=1)] = 1,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmBase]:
     if page_size * page_number > 10000:
@@ -26,11 +31,16 @@ async def all_films(
     return films
 
 
-@router.get("/search", response_model=list[FilmBase], response_model_by_alias=False)
+@router.get("/search",
+            response_model=list[FilmBase],
+            response_model_by_alias=False,
+            description='Поиск фильмов.')
 async def films_search(
     query: str,
-    page_size: int = 50,
-    page_number: int = 1,
+    page_size: Annotated[
+        int, Query(description='Pagination page size', ge=1)] = 50,
+    page_number: Annotated[
+        int, Query(description='Pagination page number', ge=1)] = 1,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmBase]:
     if page_size * page_number > 10000:
@@ -42,7 +52,10 @@ async def films_search(
     return films
 
 
-@router.get("/{film_id}", response_model=Film, response_model_by_alias=False)
+@router.get("/{film_id}",
+            response_model=Film,
+            response_model_by_alias=False,
+            description='Получить фильм по uuid.')
 async def film_details(
     film_id: str, film_service: FilmService = Depends(get_film_service)
 ) -> Film:

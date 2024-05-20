@@ -36,7 +36,8 @@ class FilmService:
         return Film(**doc["_source"])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
+        key = self.index_name + ':' + film_id
+        data = await self.redis.get(key)
         if not data:
             return None
 
@@ -44,7 +45,8 @@ class FilmService:
         return film
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(film.uuid, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+        key = self.index_name + ':' + film.uuid
+        await self.redis.set(key, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def search(
         self, query: str, page_size: int = 50, page_number: int = 1

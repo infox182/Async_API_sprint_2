@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Annotated
 
 from models.person import PersonWithFilms
 from models.film import FilmByPerson
@@ -10,12 +11,17 @@ router = APIRouter()
 
 
 @router.get(
-    "/search", response_model=list[PersonWithFilms], response_model_by_alias=False
+    "/search",
+    response_model=list[PersonWithFilms],
+    response_model_by_alias=False,
+    description='Поиск фильмов.'
 )
 async def persons(
     query: str,
-    page_size: int = 50,
-    page_number: int = 1,
+    page_size: Annotated[
+        int, Query(description='Pagination page size', ge=1)] = 50,
+    page_number: Annotated[
+        int, Query(description='Pagination page number', ge=1)] = 1,
     person_service: PersonService = Depends(get_person_service),
 ) -> list[PersonWithFilms]:
     if page_size * page_number > 10000:
@@ -28,7 +34,10 @@ async def persons(
 
 
 @router.get(
-    "/{person_id}", response_model=PersonWithFilms, response_model_by_alias=False
+    "/{person_id}",
+    response_model=PersonWithFilms,
+    response_model_by_alias=False,
+    description='Получить персону по uuid.'
 )
 async def person_details(
     person_id: str, person_service: PersonService = Depends(get_person_service)
@@ -43,11 +52,14 @@ async def person_details(
     "/{person_id}/film",
     response_model=list[FilmByPerson],
     response_model_by_alias=False,
+    description='Получить фильмы персоны.'
 )
 async def person_filmss(
     person_id: str,
-    page_size: int = 50,
-    page_number: int = 1,
+    page_size: Annotated[
+        int, Query(description='Pagination page size', ge=1)] = 50,
+    page_number: Annotated[
+        int, Query(description='Pagination page number', ge=1)] = 1,
     person_service: PersonService = Depends(get_person_service),
 ) -> list[FilmByPerson]:
     if page_size * page_number > 10000:

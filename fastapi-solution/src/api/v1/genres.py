@@ -8,14 +8,20 @@ from services.genre import GenreService, get_genre_service
 router = APIRouter()
 
 
-@router.get("/", response_model=list[Genre], response_model_by_alias=False)
+@router.get("/",
+            response_model=list[Genre],
+            response_model_by_alias=False,
+            description='Получить список жанров.')
 async def genres(
     genre_service: GenreService = Depends(get_genre_service),
 ) -> list[Genre]:
     return await genre_service.get_all()
 
 
-@router.get("/{genre_id}", response_model=Genre, response_model_by_alias=False)
+@router.get("/{genre_id}",
+            response_model=Genre,
+            response_model_by_alias=False,
+            description='Получить жанр по uuid.')
 async def genre_details(
     genre_id: str, genre_service: GenreService = Depends(get_genre_service)
 ) -> Genre:

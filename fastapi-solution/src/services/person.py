@@ -101,7 +101,8 @@ class PersonService:
         return Person(**doc["_source"])
 
     async def _get_from_cache(self, obj_id: str) -> Optional[Person]:
-        data = await self.redis.get(obj_id)
+        key = self.index_name + ':' + obj_id
+        data = await self.redis.get(key)
         if not data:
             return None
 
@@ -109,7 +110,8 @@ class PersonService:
         return obj
 
     async def _put_to_cache(self, obj: Person):
-        await self.redis.set(obj.uuid, obj.json(), CACHE_EXPIRE_IN_SECONDS)
+        key = self.index_name + ':' + obj.uuid
+        await self.redis.set(key, obj.json(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _create_film_by_person_query(
         self, person_id: str, page_size: int = 50, page_number: int = 1
