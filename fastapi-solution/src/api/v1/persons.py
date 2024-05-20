@@ -3,9 +3,9 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 
-from models.person import PersonWithFilms
-from models.film import FilmByPerson
-from services.person import PersonService, get_person_service
+from models.persons import PersonWithFilms
+from models.films import FilmBase
+from services.persons import PersonService, get_person_service
 
 router = APIRouter()
 
@@ -14,14 +14,17 @@ router = APIRouter()
     "/search",
     response_model=list[PersonWithFilms],
     response_model_by_alias=False,
-    description='Поиск фильмов.'
+    summary="Поиск персон",
+    description="Полнотекстовый поиск среди персон",
+    response_description="Информация о персоне с фильмами"
 )
 async def persons(
-    query: str,
+    query: Annotated[
+        str, Query(description='Текст для поиска')],
     page_size: Annotated[
-        int, Query(description='Pagination page size', ge=1)] = 50,
+        int, Query(description='Объем страницы при пагинации', ge=1)] = 50,
     page_number: Annotated[
-        int, Query(description='Pagination page number', ge=1)] = 1,
+        int, Query(description='Номер страницы при пагинации', ge=1)] = 1,
     person_service: PersonService = Depends(get_person_service),
 ) -> list[PersonWithFilms]:
     if page_size * page_number > 10000:
@@ -37,31 +40,36 @@ async def persons(
     "/{person_id}",
     response_model=PersonWithFilms,
     response_model_by_alias=False,
-    description='Получить персону по uuid.'
+    summary="Информация о персоне",
+    description="Получить информацию о персоне по uuid",
+    response_description="Информация о персоне с фильмами"
 )
 async def person_details(
     person_id: str, person_service: PersonService = Depends(get_person_service)
 ) -> PersonWithFilms:
     person = await person_service.get_by_id(person_id)
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
+                            detail="person not found")
     return person
 
 
 @router.get(
     "/{person_id}/film",
-    response_model=list[FilmByPerson],
+    response_model=list[FilmBase],
     response_model_by_alias=False,
-    description='Получить фильмы персоны.'
+    summary="Фильмы по персоне",
+    description="Получить фильмы персоны",
+    response_description="Список фильмов персоны"
 )
 async def person_filmss(
     person_id: str,
     page_size: Annotated[
-        int, Query(description='Pagination page size', ge=1)] = 50,
+        int, Query(description='Объем страницы при пагинации', ge=1)] = 50,
     page_number: Annotated[
-        int, Query(description='Pagination page number', ge=1)] = 1,
+        int, Query(description='Номер страницы при пагинации', ge=1)] = 1,
     person_service: PersonService = Depends(get_person_service),
-) -> list[FilmByPerson]:
+) -> list[FilmBase]:
     if page_size * page_number > 10000:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -69,5 +77,6 @@ async def person_filmss(
         )
     films = await person_service.get_films(person_id, page_size, page_number)
     if not films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
+                            detail="person not found")
     return films

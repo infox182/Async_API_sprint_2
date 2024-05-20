@@ -1,64 +1,26 @@
 from functools import lru_cache
-from typing import Optional
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film, FilmBase
+from models.films import Film, FilmBase
+from services.base import BaseGetById, BaseSearch, BaseGetAll
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
+class FilmService(BaseGetById, BaseSearch, BaseGetAll):
+    cache_expire_in_seconds = 60 * 5
+    index_name = 'movies'
+    model_get_by_id = Film
+    model_search = FilmBase
+    search_field = 'title'
+    model_get_all = FilmBase
 
-class FilmService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
         self.redis = redis
         self.elastic = elastic
-        self.index_name = "movies"
-
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
-        if not film:
-            film = await self._get_film_from_elastic(film_id)
-            if not film:
-                return None
-            await self._put_film_to_cache(film)
-
-        return film
-
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
-        try:
-            doc = await self.elastic.get(index=self.index_name, id=film_id)
-        except NotFoundError:
-            return None
-        return Film(**doc["_source"])
-
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        key = self.index_name + ':' + film_id
-        data = await self.redis.get(key)
-        if not data:
-            return None
-
-        film = Film.parse_raw(data)
-        return film
-
-    async def _put_film_to_cache(self, film: Film):
-        key = self.index_name + ':' + film.uuid
-        await self.redis.set(key, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
-
-    async def search(
-        self, query: str, page_size: int = 50, page_number: int = 1
-    ) -> list[FilmBase]:
-        query = {
-            "query": {"match": {"title": query}},
-            "size": page_size,
-            "from": (page_number - 1) * page_size,
-        }
-        response = await self.elastic.search(index=self.index_name, body=query)
-        data = response["hits"]["hits"]
-        return [FilmBase(**i["_source"]) for i in data]
 
     async def get_all(
         self,
