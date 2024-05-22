@@ -14,6 +14,10 @@ class AbstractGetById(ABC):
         pass
 
     @abstractmethod
+    async def model_es_get_by_id(self, model: BaseModel):
+        pass
+
+    @abstractmethod
     async def get_by_id(self, obj_id: str):
         pass
 
@@ -34,6 +38,7 @@ class BaseGetById(AbstractGetById):
     cache_expire_in_seconds = 60 * 5
     index_name = 'example'
     model_get_by_id = BaseModel
+    model_es_get_by_id = BaseModel
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
         self.redis = redis
@@ -53,7 +58,7 @@ class BaseGetById(AbstractGetById):
             doc = await self.elastic.get(index=self.index_name, id=obj_id)
         except NotFoundError:
             return None
-        return self.model_get_by_id(**doc["_source"])
+        return self.model_es_get_by_id(**doc["_source"])
 
     async def _get_obj_from_cache(self, obj_id: str) -> BaseModel | None:
         key = self.index_name + ':' + obj_id

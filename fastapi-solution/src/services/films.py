@@ -14,6 +14,7 @@ class FilmService(BaseGetById, BaseSearch, BaseGetAll):
     cache_expire_in_seconds = 60 * 5
     index_name = 'movies'
     model_get_by_id = Film
+    model_es_get_by_id = Film
     model_search = FilmBase
     search_field = 'title'
     model_get_all = FilmBase
