@@ -4,6 +4,7 @@ import uuid
 import aiohttp
 import pytest
 import time
+import asyncio
 
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
@@ -68,10 +69,9 @@ async def test_search():
         raise Exception("Ошибка записи данных в Elasticsearch")
 
     # 3. Запрашиваем данные из ES по API
-
+    await asyncio.sleep(1)
     session = aiohttp.ClientSession()
     url = "http://" + test_settings.service_url + "/api/v1/films/search"
-    print(url)
     query_data = {"query": "The Star"}
     async with session.get(url, params=query_data) as response:
         body = await response.json()
