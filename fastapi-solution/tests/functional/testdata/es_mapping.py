@@ -157,4 +157,4 @@ SCHEMA_PERSONS = {
 }
 
 
-SCHEMAS = {"movies": SCHEMA_MOVIES, "persons": SCHEMA_GENRES, "genres": SCHEMA_PERSONS}
+SCHEMAS = {"movies": SCHEMA_MOVIES, "persons": SCHEMA_PERSONS, "genres": SCHEMA_GENRES}

@@ -24,7 +24,9 @@ class TestSettings(BaseSettings):
     redis_host: str = Field("127.0.0.1", alias="REDIS_HOST")
     redis_port: int = Field(6379, alias="REDIS_PORT")
 
-    service_url: str = Field("127.0.0.1:8000", alias="SERVICE_URL")
+    service_url: str = Field("http://127.0.0.1:8000", alias="SERVICE_URL")
+
+    download_limit: int = 200
 
 
 test_settings = TestSettings()

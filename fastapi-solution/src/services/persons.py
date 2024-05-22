@@ -6,7 +6,7 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.persons import PersonWithFilms, FilmForPerson
+from models.persons import PersonWithFilms, FilmForPerson, Person
 from services.base import BaseGetById, BaseSearch
 
 
@@ -14,6 +14,7 @@ class PersonService(BaseGetById, BaseSearch):
     cache_expire_in_seconds = 60 * 5
     index_name = 'persons'
     model_get_by_id = PersonWithFilms
+    model_es_get_by_id = Person
     model_search = PersonWithFilms
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
@@ -41,7 +42,9 @@ class PersonService(BaseGetById, BaseSearch):
         person_dict["films"] = await self._get_films_by_person_with_role(
             person_dict["uuid"]
         )
-        return PersonWithFilms(**person_dict)
+        obj = PersonWithFilms(**person_dict)
+        await self._put_obj_to_cache(obj)
+        return obj
 
     async def _get_films_by_person(
         self, obj_id: str, page_size: int = 50, page_number: int = 1

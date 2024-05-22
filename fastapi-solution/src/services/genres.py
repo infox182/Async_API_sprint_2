@@ -14,6 +14,7 @@ class GenreService(BaseGetById, BaseGetAll):
     cache_expire_in_seconds = 60 * 5
     index_name = 'genres'
     model_get_by_id = Genre
+    model_es_get_by_id = Genre
     model_get_all = Genre
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
