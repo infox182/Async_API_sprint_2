@@ -1,0 +1,41 @@
+version: '3'
+services:
+
+  elasticsearch_test:
+    image: elasticsearch:8.6.2
+    deploy:
+      resources:
+        limits:
+          memory: 4GB
+    restart: always
+    ports:
+      - "9200:9200"
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+
+  redis_test:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+
+  fastapi_test:
+    build: ../../.
+    image: fastapi-image
+    depends_on:
+      - redis_test
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+  
+  tests:
+    build: .
+    image: tests-image
+    depends_on:
+      - elasticsearch_test
+      - redis_test
+      - fastapi_test
+    env_file:
+      - .env
