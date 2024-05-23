@@ -6,6 +6,7 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
+from models.films import FilmBase
 from models.persons import PersonWithFilms, FilmForPerson, Person
 from services.base import BaseGetById, BaseSearch
 
@@ -45,6 +46,13 @@ class PersonService(BaseGetById, BaseSearch):
         obj = PersonWithFilms(**person_dict)
         await self._put_obj_to_cache(obj)
         return obj
+
+    async def get_films(
+        self, obj_id: str, page_size: int = 50, page_number: int = 1
+    ) -> list[FilmBase]:
+        data = await self._get_films_by_person(
+            obj_id, page_size, page_number)
+        return [FilmBase(**i["_source"]) for i in data]
 
     async def _get_films_by_person(
         self, obj_id: str, page_size: int = 50, page_number: int = 1
