@@ -4,6 +4,7 @@ from pydantic import Field
 
 BASE_DIR = pathlib.Path(__file__).parent.resolve()
 
+
 class PgSettings(BaseSettings):
     dbname: str = Field(..., alias="DB_NAME")
     user: str = Field(..., alias="DB_USER")
@@ -17,6 +18,7 @@ class PgSettings(BaseSettings):
         extra="ignore",
     )
 
+
 class EsSettings(BaseSettings):
     host: str = Field(..., alias="ELASTIC_HOST")
     port: int = Field(9200, alias="ELASTIC_PORT")
@@ -27,6 +29,7 @@ class EsSettings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
 
 class Settings(BaseSettings):
     project_name: str = "FastAPI Project"
@@ -48,5 +51,6 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
 
 settings = Settings()

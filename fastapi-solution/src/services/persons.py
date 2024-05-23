@@ -13,7 +13,7 @@ from services.base import BaseGetById, BaseSearch
 
 class PersonService(BaseGetById, BaseSearch):
     cache_expire_in_seconds = 60 * 5
-    index_name = 'persons'
+    index_name = "persons"
     model_get_by_id = PersonWithFilms
     model_es_get_by_id = Person
     model_search = PersonWithFilms
@@ -28,8 +28,7 @@ class PersonService(BaseGetById, BaseSearch):
     async def search(
         self, query: str, page_size: int = 50, page_number: int = 1
     ) -> list:
-        objs = await self._get_objects_from_search(
-            query, page_size, page_number)
+        objs = await self._get_objects_from_search(query, page_size, page_number)
         return objs
 
     async def _get_person_with_films(self, person_id: str) -> PersonWithFilms:
@@ -39,7 +38,7 @@ class PersonService(BaseGetById, BaseSearch):
             if not obj:
                 return None
             await self._put_obj_to_cache(obj)
-        person_dict = obj.model_dump(mode='json')
+        person_dict = obj.model_dump(mode="json")
         person_dict["films"] = await self._get_films_by_person_with_role(
             person_dict["uuid"]
         )
@@ -50,15 +49,13 @@ class PersonService(BaseGetById, BaseSearch):
     async def get_films(
         self, obj_id: str, page_size: int = 50, page_number: int = 1
     ) -> list[FilmBase]:
-        data = await self._get_films_by_person(
-            obj_id, page_size, page_number)
+        data = await self._get_films_by_person(obj_id, page_size, page_number)
         return [FilmBase(**i["_source"]) for i in data]
 
     async def _get_films_by_person(
         self, obj_id: str, page_size: int = 50, page_number: int = 1
     ) -> list:
-        query = await self._create_film_by_person_query(
-            obj_id, page_size, page_number)
+        query = await self._create_film_by_person_query(obj_id, page_size, page_number)
         response = await self.elastic.search(index="movies", body=query)
         return response["hits"]["hits"]
 
@@ -104,8 +101,7 @@ class PersonService(BaseGetById, BaseSearch):
                         {
                             "nested": {
                                 "path": "directors",
-                                "query": {"match": {
-                                    "directors.id": person_id}},
+                                "query": {"match": {"directors.id": person_id}},
                             }
                         },
                     ]
@@ -131,8 +127,7 @@ class PersonService(BaseGetById, BaseSearch):
         for person in data:
             person_id = person["_id"]
             person_dict = person["_source"]
-            person_dict["films"] = await self._get_films_by_person_with_role(
-                person_id)
+            person_dict["films"] = await self._get_films_by_person_with_role(person_id)
             result.append(PersonWithFilms(**person_dict))
         return result
 
