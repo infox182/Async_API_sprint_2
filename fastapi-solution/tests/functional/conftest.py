@@ -3,6 +3,7 @@ import json
 import pytest
 import pytest_asyncio
 import os
+import uuid
 
 from aiohttp import ClientSession, RequestInfo
 from elasticsearch import AsyncElasticsearch
@@ -115,4 +116,55 @@ def get_from_redis(redis_client: Redis):
 def redis_clearing(redis_client: Redis):
     async def inner() -> None:
         await redis_client.flushdb(asynchronous=True)
+    return inner
+
+
+@pytest.fixture
+def generate_films():
+    def inner(n: int) -> list[dict]:
+        es_data = [
+            {
+                'id': str(uuid.uuid4()),
+                'imdb_rating': 8.5,
+                'creation_date': '2020-01-01',
+                'genres': [{'id': str(uuid.uuid4()), 'name': 'Action'}],
+                'title': 'The Star',
+                'description': 'New World',
+                'directors_names': ['Stan'],
+                'actors_names': ['Ann', 'Bob'],
+                'writers_names': ['Ben', 'Howard'],
+                'actors': [
+                    {'id': 'ef86b8ff-3c82-4d31-ad8e-72b69f4e3f95', 'name': 'Ann'},
+                    {'id': 'fb111f22-121e-44a7-b78f-b19191810fbf', 'name': 'Bob'},
+                ],
+                'writers': [
+                    {'id': 'caf76c67-c0fe-477e-8766-3ab3ff2574b5', 'name': 'Ben'},
+                    {'id': 'b45bd7bc-2e16-46d5-b125-983d356768c6', 'name': 'Howard'},
+                ],
+                'directors': [
+                    {'id': 'caf76c67-c0fe-477e-8766-3ab3ff2574b5', 'name': 'Ben'},
+                    {'id': 'b45bd7bc-2e16-46d5-b125-983d356768c6', 'name': 'Howard'},
+                ],
+            }
+            for _ in range(n)
+        ]
+        return es_data
+    return inner
+
+
+@pytest.fixture
+def make_normal_names():
+    def inner(body: dict) -> dict:
+        body['uuid'] = body.pop('id')
+        for field in ['directors_names', 'actors_names', 'writers_names']:
+            if field in body:
+                body.pop(field)
+        for field in ['genres', 'directors', 'actors', 'writers']:
+            if field in body:
+                for i, v in enumerate(body[field]):
+                    if 'id' in v:
+                        body[field][i]['uuid'] = body[field][i].pop('id')
+                    if 'name' in v and field != 'genres':
+                        body[field][i]['full_name'] = body[field][i].pop('name')
+        return body
     return inner
