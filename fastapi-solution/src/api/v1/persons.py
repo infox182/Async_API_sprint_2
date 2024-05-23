@@ -62,7 +62,7 @@ async def person_details(
     description="Получить фильмы персоны",
     response_description="Список фильмов персоны"
 )
-async def person_filmss(
+async def person_films(
     person_id: str,
     page_size: Annotated[
         int, Query(description='Объем страницы при пагинации', ge=1)] = 50,
