@@ -13,7 +13,7 @@ from tests.functional.settings import test_settings
 
 
 @pytest.mark.asyncio
-async def test_search():
+async def test_search(es_write_data, make_get_request):
 
     # 1. Генерируем данные для ES
     es_data = [
@@ -45,39 +45,12 @@ async def test_search():
 
     movie_index_name = test_settings.es_index_movie
 
-    bulk_query: list[dict] = []
-    for row in es_data:
-        data = {"_index": movie_index_name, "_id": row["id"]}
-        data.update({"_source": row})
-        bulk_query.append(data)
-
     # 2. Загружаем данные в ES
-    es_client = AsyncElasticsearch(
-        hosts=[f"{test_settings.es_host}:{test_settings.es_port}"], verify_certs=False
-    )
-    if await es_client.indices.exists(index=movie_index_name):
-        await es_client.indices.delete(index=movie_index_name)
-    await es_client.indices.create(
-        index=movie_index_name, body=test_settings.es_index_mapping[movie_index_name]
-    )
-
-    updated, errors = await async_bulk(client=es_client, actions=bulk_query)
-
-    await es_client.close()
-
-    if errors:
-        raise Exception("Ошибка записи данных в Elasticsearch")
+    await es_write_data(movie_index_name, es_data)
 
     # 3. Запрашиваем данные из ES по API
-    await asyncio.sleep(1)
-    session = aiohttp.ClientSession()
-    url = "http://" + test_settings.service_url + "/api/v1/films/search"
     query_data = {"query": "The Star"}
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        headers = response.headers
-        status = response.status
-    await session.close()
+    body, headers, status = await make_get_request("films/search", query_data)
 
     # 4. Проверяем ответ
     assert status == 200
