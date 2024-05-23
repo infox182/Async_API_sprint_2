@@ -1,13 +1,5 @@
-import sys
-import datetime
 import uuid
-import aiohttp
 import pytest
-import time
-import asyncio
-
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.helpers import async_bulk
 
 from tests.functional.settings import test_settings
 
