@@ -61,10 +61,11 @@ async def redis_client():
 @pytest_asyncio.fixture
 def es_write_data(es_client: AsyncElasticsearch):
     async def inner(index: str, data: list[dict]):
-        if not await es_client.indices.exists(index=index):
-            await es_client.indices.create(
-                index=index,
-                body=test_settings.es_index_mapping[index])
+        if await es_client.indices.exists(index=index):
+            await es_client.indices.delete(index, ignore_unavailable=True)
+        await es_client.indices.create(
+            index=index,
+            body=test_settings.es_index_mapping[index])
         async for part in list_in_parts(data):
             bulk_data = []
             for elem in part:
@@ -76,6 +77,7 @@ def es_write_data(es_client: AsyncElasticsearch):
                     }
                 )
             await async_bulk(es_client, bulk_data)
+            await asyncio.sleep(1)
     return inner
 
 
