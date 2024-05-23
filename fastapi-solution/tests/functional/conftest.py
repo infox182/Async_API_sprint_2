@@ -2,6 +2,7 @@ import asyncio
 import json
 import pytest
 import pytest_asyncio
+import os
 
 from aiohttp import ClientSession, RequestInfo
 from elasticsearch import AsyncElasticsearch
@@ -88,7 +89,8 @@ def es_clearing(es_client: AsyncElasticsearch):
 @pytest_asyncio.fixture
 def make_get_request(http_session: ClientSession):
     async def inner(path: str, params: dict = {}) -> RequestInfo:
-        url = test_settings.service_url + '/api/v1/' + path
+        api_path = 'api/v1/'
+        url = os.path.join(test_settings.service_url, api_path, path)
         async with http_session.get(url, params=params) as response:
             body = await response.json(content_type=None)
             headers = response.headers
