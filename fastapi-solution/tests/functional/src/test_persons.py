@@ -19,7 +19,7 @@ async def test_person_search():
 @pytest.mark.asyncio
 async def test_person_get_by_id(
     es_write_data, es_clearing, make_get_request,
-    get_from_redis, redis_clearing
+    get_from_redis, redis_clearing, generate_films
 ):
     index = test_settings.es_index_person
     test_uuid = str(uuid.uuid4())
@@ -29,7 +29,8 @@ async def test_person_get_by_id(
             'full_name': 'Alex Gate'
         }
     ]
-
+    
+    await es_write_data(test_settings.es_index_movie, generate_films(1))
     await es_write_data(index, data)
     redis_value = await get_from_redis(f'{index}:{test_uuid}')
     assert redis_value is None
@@ -44,6 +45,7 @@ async def test_person_get_by_id(
     assert body == expected_body
     assert redis_value == expected_body
     await es_clearing(index)
+    await es_clearing(test_settings.es_index_movie)
     await redis_clearing()
 
 
