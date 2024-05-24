@@ -27,6 +27,8 @@ class TestSettings(BaseSettings):
     service_url: str = Field("http://127.0.0.1:8000", alias="SERVICE_URL")
 
     download_limit: int = 200
+    max_tries: int = 7
+    max_time: int = 25
 
 
 test_settings = TestSettings()
