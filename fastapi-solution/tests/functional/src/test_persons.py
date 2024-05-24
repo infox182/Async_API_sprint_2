@@ -1,6 +1,8 @@
 import uuid
 import pytest
 
+from http import HTTPStatus
+
 from tests.functional.settings import test_settings
 
 
@@ -48,7 +50,7 @@ async def test_person_search(es_write_data, es_clearing, make_get_request):
         }
     ]
     try:
-        assert status == 200
+        assert status == HTTPStatus.OK
         assert body == expected_body
     finally:
         await es_clearing(index)
@@ -75,7 +77,7 @@ async def test_person_get_by_id(
     body, headers, status = await make_get_request("persons/" + test_uuid)
     expected_body = {"uuid": test_uuid, "full_name": "Alex Gate", "films": []}
     redis_value = await get_from_redis(f"{index}:{test_uuid}")
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body == expected_body
     assert redis_value == expected_body
     await es_clearing(index)
@@ -121,7 +123,7 @@ async def test_person_films(es_write_data, es_clearing, make_get_request):
         {"uuid": i, "title": "The Star", "imdb_rating": 8.5} for i in uuid_film_list
     ]
     try:
-        assert status == 200
+        assert status == HTTPStatus.OK
         assert body == expected_body
     finally:
         await es_clearing(index)

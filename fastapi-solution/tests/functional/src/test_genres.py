@@ -1,6 +1,8 @@
 import uuid
 import pytest
 
+from http import HTTPStatus
+
 from tests.functional.settings import test_settings
 
 
@@ -20,7 +22,7 @@ async def test_genre_get_by_id(es_write_data, es_clearing, make_get_request):
         "description": "Action movies",
     }
     try:
-        assert status == 200
+        assert status == HTTPStatus.OK
         assert body == expected_body
     finally:
         await es_clearing(index)
@@ -43,7 +45,7 @@ async def test_genre_get_all(es_write_data, es_clearing, make_get_request):
         {"uuid": test_uuid2, "name": "Drama", "description": "Drama movies"},
     ]
     try:
-        assert status == 200
+        assert status == HTTPStatus.OK
         assert body == expected_body
     finally:
         await es_clearing(index)
