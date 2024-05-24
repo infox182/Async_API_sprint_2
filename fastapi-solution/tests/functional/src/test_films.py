@@ -1,15 +1,17 @@
 import uuid
 import pytest
 
+from http import HTTPStatus
+
 from tests.functional.settings import test_settings
 
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
-        ({"query": "The Star"}, {"status": 200, "length": 50}),
-        ({"query": "Mashed potato"}, {"status": 200, "length": 0}),
-        ({"query": "I am the Only One"}, {"status": 200, "length": 1}),
+        ({"query": "The Star"}, {"status": HTTPStatus.OK, "length": 50}),
+        ({"query": "Mashed potato"}, {"status": HTTPStatus.OK, "length": 0}),
+        ({"query": "I am the Only One"}, {"status": HTTPStatus.OK, "length": 1}),
     ],
 )
 @pytest.mark.asyncio
@@ -56,7 +58,7 @@ async def test_search(
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
-        ({"page_size": 100}, {"status": 200, "length": 77}),
+        ({"page_size": 100}, {"status": HTTPStatus.OK, "length": 77}),
     ],
 )
 @pytest.mark.asyncio
@@ -88,7 +90,7 @@ async def test_all_films(
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
-        ({}, {"status": 200}),
+        ({}, {"status": HTTPStatus.OK}),
     ],
 )
 @pytest.mark.asyncio
