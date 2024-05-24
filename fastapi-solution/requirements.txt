@@ -4,6 +4,7 @@ elasticsearch[async]==7.9.1
 fastapi==0.111.0
 orjson==3.10.3
 pydantic==2.7.1
+pydantic_settings==2.2.1
 uvicorn==0.29.0
 uvloop==0.17.0 ; sys_platform != "win32" and implementation_name == "cpython"
 python-dotenv==1.0.1
